@@ -6,4 +6,4 @@ This is the code corresponding to the paper "Single-Image-based-unsupervised-joi
 ![Alt Text](image/squirrel_github.png)
 
 ### Installation
-We have included the .yml file which we have used. We have used pytorch with cuda 11.7. and for the differentiable FBP we used tomosipo (https://github.com/ahendriksen/tomosipo). For the CT geometry, we installed LION (https://github.com/CambridgeCIA/LION).
+We have included the .yml file with the packages listed which we have used for this code.
