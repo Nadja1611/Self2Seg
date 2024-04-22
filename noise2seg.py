@@ -204,7 +204,7 @@ def noise2seg(image,
                     plt.imshow(torch.round(mynet.x.cpu()[0]))
                     plt.title('Final Segmentation')
                     plt.show()
-                    
+                    break
                     #plt.figure()
                     return mynet.x, mynet.f1
                     
