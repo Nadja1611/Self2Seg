@@ -1,4 +1,4 @@
-# Single-Image-based-unsupervised-joint-segmentation-and-denoising
+# Self2Seg: Single-Image-based-unsupervised-joint-segmentation-and-denoising
 
 This is the code corresponding to the paper "Single-Image-based-unsupervised-joint-segmentation-and-denoising"
 ![Alt Text](image/workflow_github.png)
