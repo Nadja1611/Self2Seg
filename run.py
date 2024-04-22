@@ -72,7 +72,7 @@ if args.dataset == "brodi.png":
     f[:,:,:140]=f[:,:,:140]+torch.abs(torch.mean(f[:,:,:140])-torch.mean(f[:,:,140:]))
     ## add gaussian noise
     img = f +0.1* torch.randn_like(f)*torch.max(f)
-    seg, den = noise2seg(img, initialization=args.initialization, lam = 0.01, box_foreground = args.box_fg, box_background = args.box_bg, number_of_denoisers=2)
+    seg, den = noise2seg(img, initialization=args.initialization, lam = 0.02, box_foreground = args.box_fg, box_background = args.box_bg, number_of_denoisers=2)
 
 
 for j in range(data.shape[0]):
