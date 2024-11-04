@@ -21,6 +21,12 @@ parser.add_argument(
     help="directory for input files",
     default="/home/nadja/Self2Seg/Self2Seg/data/",
 )
+parser.add_argument(
+    "--image_name",
+    type=str,
+    help="name of single image to process",
+    default = None
+)
 parser.add_argument("--learning_rate", type=float, help="learning rate", default=2e-4)
 parser.add_argument(
     "--method", type=str, help="joint/sequential or only Chan Vese cv", default="joint"
@@ -52,6 +58,10 @@ parser.add_argument(
     "--denoised_provided", type=bool, help="do we have denoised folder?", default=False
 )
 
+parser.add_argument(
+    "--initialization_boxes",type = str, help="path to numpy array containing binary boxes for initialization?", default=None
+)
+
 device = "cuda:1"
 torch.manual_seed(0)
 """ set necessary parameters, which initialization should be used """
@@ -61,26 +71,14 @@ torch.manual_seed(0)
 """ which dataset should be used for the experiment """
 """ which values of regularization parameter lambda  """
 args = parser.parse_args()
-lambdas = np.linspace(0.02, 0.035, 15)
-# args.initialization = "denoise+threshold"
-# args.number_of_denoisers=1
-# args.method = "joint"
-# args.dataset = "data_n30.npz"
-# args.lam = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
-# args.denoised_provided = True
-# args.box_fg = None
-# args.box_bg = None
 
-args.initialization = "threshold"
-args.number_of_denoisers = 2
-args.method = "joint"
-args.dataset = "tigi2.jpg"
-args.lam = [0.01, 0.02]
-args.denoised_provided = False
-args.box_fg = torch.zeros((1, 256, 256))
-args.box_fg[::, -140:-110, 100:130] = 1
-args.box_bg = torch.zeros((1, 256, 256))
-args.box_bg[::, 10:50, 40:120] = 1
+if args.image_name !=None:
+    args.dataset = args.dataset+'/' + args.image_name
+
+boxes = np.load(args.initialization_boxes)
+
+box_fg = boxes['fg']
+box_bg = boxes['bg']
 
 #### to do filter: kernel size 1 default
 ####### read in the dataset we want to denoise and segment #############
