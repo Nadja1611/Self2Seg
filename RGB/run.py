@@ -13,19 +13,19 @@ parser.add_argument(
     "--output_directory",
     type=str,
     help="directory for outputs",
-    default="/home/nadja/Self2Seg/Self2Seg/results_test/",
+    default="/Users/JohannesSchwab/Self2Seg/results_test"
 )
 parser.add_argument(
     "--input_directory",
     type=str,
     help="directory for input files",
-    default="/home/nadja/Self2Seg/Self2Seg/data/",
+    default="/Users/JohannesSchwab/Self2Seg/data"
 )
 parser.add_argument(
     "--image_name",
     type=str,
     help="name of single image to process",
-    default = None
+    default = 'zebris2.jpg'
 )
 parser.add_argument("--learning_rate", type=float, help="learning rate", default=2e-4)
 parser.add_argument(
@@ -34,7 +34,7 @@ parser.add_argument(
 parser.add_argument(
     "--lam", type=list, help="regularization parameter of CV", default=[0.01, 0.02]
 )
-parser.add_argument("--dataset", type=str, help="Which dataset", default="DSB2018_n30")
+parser.add_argument("--dataset", type=str, help="Which dataset", default="")
 parser.add_argument(
     "--number_of_denoisers",
     type=int,
@@ -52,7 +52,7 @@ parser.add_argument(
     "--initialization",
     type=str,
     help="How should the segmentation be initialized? (options are threshold, denoise+threshold, box",
-    default="threshold",
+    default="boxes",
 )
 parser.add_argument(
     "--denoised_provided", type=bool, help="do we have denoised folder?", default=False
@@ -62,7 +62,7 @@ parser.add_argument(
     "--initialization_boxes",type = str, help="path to numpy array containing binary boxes for initialization?", default=None
 )
 
-device = "cuda:1"
+device = "cuda:0"
 torch.manual_seed(0)
 """ set necessary parameters, which initialization should be used """
 """ should the differences be filtered"""
@@ -72,13 +72,17 @@ torch.manual_seed(0)
 """ which values of regularization parameter lambda  """
 args = parser.parse_args()
 
+
+
 if args.image_name !=None:
     args.dataset = args.dataset+'/' + args.image_name
 
-boxes = np.load(args.initialization_boxes)
 
-box_fg = boxes['fg']
-box_bg = boxes['bg']
+if args.initialization == 'boxes':
+    args.box_fg = torch.zeros((1, 256, 256))
+    args.box_fg[::, -140:-110, 100:130] = 1
+    args.box_bg = torch.zeros((1, 256, 256))
+    args.box_bg[::, 10:50, 40:120] = 1
 
 #### to do filter: kernel size 1 default
 ####### read in the dataset we want to denoise and segment #############
@@ -89,7 +93,6 @@ if args.dataset.endswith(".npz"):
     data = data["X_train"]
 # For an arbitrary image
 if args.dataset.endswith(".png") or args.dataset.endswith(".jpg"):
-    ##### load brodatz image (example in paper with means of left and right half are the same but denoiser learns structure)
     data = plt.imread(args.input_directory + args.dataset)
     img = data[:, :, :]
     img = resize(img, (256, 256, 3), preserve_range=True)
@@ -99,11 +102,12 @@ if args.dataset.endswith(".png") or args.dataset.endswith(".jpg"):
     f = torch.tensor(img/np.max(img))
     ##### add dimension
     f = f.unsqueeze(0).to(device)
-    ##### create halfs with same mean
-    # f[:,:,:140]=f[:,:,:140]+torch.abs(torch.mean(f[:,:,:140])-torch.mean(f[:,:,140:]))
-    ## add gaussian noise
-    img = f + 0.1 * torch.randn_like(f) * torch.max(f)
-    for lam in lambdas:
+    img = f #+ 0.1 * torch.randn_like(f) * torch.max(f)
+    if args.initialization == 'threshold':
+        args.box_fg = torch.sum(f[0],0)>0.5
+        args.box_bg = torch.sum(f[0],0)<0.5
+        
+    for lam in args.lam:
         seg, den = noise2seg(
             img,
             initialization=args.initialization,
